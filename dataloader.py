@@ -10,38 +10,6 @@ import torch
 import torch.optim as optim
 
 
-def write_csv(file, array):
-    mywriter = csv.writer(file, array)
-    for i in array:
-        mywriter.writerow(i)
-
-
-def get_mse(predictions, y):
-    mses = []
-    for i in range(len(predictions)):
-        error = y[i] - predictions[i]
-        se = error * error
-        mses.append(np.mean(se))
-    return np.mean(np.asarray(mses))
-
-
-def fit_and_run(X, Y, X_test, Y_test, mse=False):
-    classifier = Classifier(X, Y)
-    classifier.fit(X, Y)
-
-    if mse:
-        predictions = classifier.predict(X_test)
-        accuracy = get_mse(predictions, Y_test)
-        print("MSE = {:.2f}".format(accuracy))
-    else:
-        Accuracy = classifier.score(X_test, Y_test)
-        # print("Epochs = ", classifier.last_epoch)
-        print("Accuracy = {:.2f}%".format(Accuracy * 100))
-    # print("Final Weights =", classifier.get_weights())
-    print()
-    return classifier
-
-
 def multi_factor_load(filename, encode_x=[], drop=[]):
     print(filename)
     arff = Arff(label_count=1)
@@ -78,8 +46,6 @@ def test(X_test, Y_test):
     temp_losses = []
     for x, y_truth in zip(X_test, Y_test):
         y_hat = model(x)
-        predicted = y_hat.argmax()
-        truth = y_truth.argmax()
         temp_losses.append((int)(y_hat.argmax() == y_truth.argmax()))
     return np.mean(temp_losses)
 
@@ -114,5 +80,5 @@ if __name__ == "__main__":
 
 
         test_accuracies.append(test(X_test, y_test))
-
+    print(max(test_accuracies))
     loop.close()
