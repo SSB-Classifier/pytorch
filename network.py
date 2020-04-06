@@ -9,11 +9,11 @@ class Classifier(nn.Module):
         self.seq_nlp = nn.Sequential(
             nn.Linear(size, 2048),
             nn.ReLU(),
-            nn.Linear(2048, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 512),
-            nn.ReLU(),
-            nn.Linear(512, 256),
+            # nn.Linear(2048, 1024),
+            # nn.ReLU(),
+            # nn.Linear(1024, 512),
+            # nn.ReLU(),
+            nn.Linear(2048, 256),
             nn.ReLU(),
             nn.Linear(256, outputs.shape[-1])
         ).cuda()

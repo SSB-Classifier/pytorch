@@ -8,6 +8,7 @@ import csv
 from tqdm import tqdm
 import torch
 import torch.optim as optim
+from sklearn.model_selection import KFold
 
 
 def multi_factor_load(filename, encode_x=[], drop=[]):
@@ -52,33 +53,40 @@ def test(X_test, Y_test):
 
 if __name__ == "__main__":
 
-    X, Y = multi_factor_load('smash-bros.arff', drop=[0], encode_x=[2])
+    X, Y = multi_factor_load('smash-bros.arff', drop=[0, 2])
     X = torch.from_numpy(X).cuda().float()
     Y = torch.from_numpy(Y).cuda().float()
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=.33, shuffle=True)
+    # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=.33, shuffle=True)
     model = Classifier(X, Y).cuda()
-    objective = torch.nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
-    loop = tqdm(range(50))
+    objective = torch.nn.CrossEntropyLoss()
     losses = []
     test_accuracies = []
-    for epoch in range(50):
+    kf = KFold(n_splits=5)
+    kf.get_n_splits(X)
+    test_maxes = []
+    for train_index, test_index in kf.split(X):
+        model = Classifier(X, Y).cuda()
+        optimizer = optim.Adam(model.parameters(), lr=1e-6)
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = Y[train_index], Y[test_index]
+        loop = tqdm(range(100))
+        for epoch in range(100):
+            for x, y_truth in zip(X_train, y_train):
+                optimizer.zero_grad()
 
-        for x, y_truth in zip(X_train, y_train):
-            x, y_truth = x.cuda(async=True), y_truth.cuda(async=True)
-            optimizer.zero_grad()
+                y_hat = model(x)
 
-            y_hat = model(x)
+                loss = objective(y_hat.unsqueeze(0), y_truth.argmax().unsqueeze(0))
+                losses.append(loss)
 
-            loss = objective(y_hat, y_truth)
-            losses.append(loss)
-
-            loss.backward()
-            optimizer.step()
-        loop.set_description('loss:{:.4f}'.format(test(X_test, y_test)))
-        loop.update(1)
-
-
-        test_accuracies.append(test(X_test, y_test))
-    print(max(test_accuracies))
-    loop.close()
+                loss.backward()
+                optimizer.step()
+                loop.set_description('loss:{:.4f}'.format(loss.item()))
+            # loop.set_description('loss:{:.4f}'.format(test(X_test, y_test)))
+            loop.update(1)
+            test_accuracies.append(test(X_test, y_test))
+        print(max(test_accuracies))
+        test_maxes.append(max(test_accuracies))
+        test_accuracies = []
+        loop.close()
+    print(np.mean(test_maxes))
