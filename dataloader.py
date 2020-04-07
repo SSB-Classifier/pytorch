@@ -129,7 +129,7 @@ def test(X_test, Y_test, model):
 
 if __name__ == "__main__":
 
-    X, Y = multi_factor_load('smash-bros.arff', drop=[0, 2])
+    X, Y = multi_factor_load('smash-bros.arff', drop=[0])
     max_accuracy = -1
     max_features = [x for x in range(X.shape[-1])]
     while True:
@@ -142,6 +142,5 @@ if __name__ == "__main__":
     print(max_accuracy)
     print(max_features)
 
-    run(X, Y, 5, 100)
     # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=.33, shuffle=True)
 

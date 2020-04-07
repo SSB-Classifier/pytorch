@@ -7,13 +7,13 @@ class Classifier(nn.Module):
         super(Classifier, self).__init__()
         size = list(input.size())[-1]
         self.seq_nlp = nn.Sequential(
-            nn.Linear(size, 512),
+            nn.Linear(size, 256),
             nn.ReLU(),
             # nn.Linear(2048, 1024),
             # nn.ReLU(),
             # nn.Linear(1024, 512),
             # nn.ReLU(),
-            nn.Linear(512, 256),
+            nn.Linear(256, 256),
             nn.ReLU(),
             nn.Linear(256, outputs.shape[-1])
         )
